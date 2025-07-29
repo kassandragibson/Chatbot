@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Chatbot</title>
-    <!-- Link to the external stylesheet -->
     <link rel="stylesheet" href="style.css">
-    <!-- Link to Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -14,38 +12,31 @@
 <body>
 
     <div class="chat-container">
-        <!-- Header Section -->
         <header class="chat-header">
-            <span class="status-dot"></span>
-            <span>AI Assistant</span>
+            <div class="header-title">
+                <span class="status-dot"></span>
+                <span>AI Assistant</span>
+            </div>
+            <button id="menu-toggle-button" class="header-button">Menu</button>
         </header>
 
-        <!-- Messages Display Area -->
-        <main class="chat-messages" id="chat-messages">
-            <!-- Example AI Welcome Message -->
-            <div class="message ai">
-                <div class="bubble">
-                    Hello! How can I help you today?
-                </div>
-            </div>
-            <!-- Example User Message -->
-            <div class="message user">
-                <div class="bubble">
-                    Tell me a fun fact about space.
-                </div>
-            </div>
-        </main>
+        <!-- The chat messages, including the menu, will be dynamically added here by JavaScript -->
+        <main class="chat-messages" id="chat-messages"></main>
 
-        <!-- User Input Form -->
         <form class="chat-input-form" id="chat-form">
-            <input type="text" id="chat-input" placeholder="Type your message..." autocomplete="off" required>
+            <input type="text" id="chat-input" placeholder="Select a mode to begin..." autocomplete="off" required>
             <button type="submit" id="send-button">Send</button>
         </form>
     </div>
 
-    <!-- Link to the external JavaScript file -->
+    <!-- 
+      Load order is important:
+      1. config.js (to define API_KEY)
+      2. dadJokes.js (our new feature module)
+      3. main.js (which uses everything)
+    -->
     <script src="config.js"></script>
+    <script src="dadJokes.js"></script>
     <script src="main.js" defer></script>
-
 </body>
 </html>
