@@ -80,6 +80,27 @@ function displayMenu() {
 }
 
 /**
+ * Displays the difficulty options for the Guessing Game.
+ */
+function displayGuessingGameOptions() {
+    chatMessages.innerHTML = ''; // Clear the chat window.
+    addMessage('ai', `
+        Please choose a difficulty level:
+        <div class="menu-buttons">
+            <button class="menu-button difficulty-button" data-max-number="50" data-max-attempts="10">Easy (1-50, 10 Tries)</button>
+            <button class="menu-button difficulty-button" data-max-number="100" data-max-attempts="7">Medium (1-100, 7 Tries)</button>
+            <button class="menu-button difficulty-button" data-max-number="200" data-max-attempts="5">Hard (1-200, 5 Tries)</button>
+            <button class="menu-button difficulty-button" data-max-number="100" data-max-attempts="0">Practice (1-100, Unlimited)</button>
+        </div>
+    `);
+    // Keep input disabled until a choice is made.
+    chatInput.disabled = true;
+    sendButton.disabled = true;
+    chatInput.placeholder = "Select a difficulty to begin...";
+}
+
+
+/**
  * Sets up the application state based on the user's menu selection.
  * @param {string} mode - The mode selected by the user (e.g., 'chat', 'jokes').
  */
@@ -102,8 +123,9 @@ function handleModeSelection(mode) {
             welcomeMessage = "You've selected **Mad Libs**. Let's make a silly story!";
             break;
         case 'guessing':
-            welcomeMessage = "You've selected **Guess the Number**. I'm thinking of a number between 1 and 100.";
-            break;
+            // Instead of a welcome message, show the game options.
+            displayGuessingGameOptions();
+            return; // Exit here to prevent default message/input enabling.
         case 'calculator':
             welcomeMessage = "You've selected **Calculator**. Please enter a math problem (e.g., '5 * 8').";
             break;
@@ -186,8 +208,12 @@ chatForm.addEventListener('submit', async (e) => {
     sendButton.disabled = true;
 
     let aiResponse = '';
-    const loadingIndicator = showLoadingIndicator();
-
+    // Show a loading indicator for API calls, but not for instant local logic.
+    let loadingIndicator;
+    if (currentMode === 'chat' || currentMode === 'jokes') {
+        loadingIndicator = showLoadingIndicator();
+    }
+    
     // Determine the correct action based on the current chatbot mode.
     if (currentMode === 'chat') {
         aiResponse = await getAIResponse(messageText);
@@ -197,21 +223,39 @@ chatForm.addEventListener('submit', async (e) => {
     } else if (currentMode === 'madlibs') {
         aiResponse = "Okay, give me a noun. <br><br>_(This is a placeholder, real Mad Libs logic coming soon!)_";
     } else if (currentMode === 'guessing') {
-        aiResponse = "You guessed 50. Too high! <br><br>_(This is a placeholder, real guessing game logic coming soon!)_";
+        // Call the dedicated function from guessingGame.js
+        aiResponse = handleGuess(messageText);
     } else if (currentMode === 'calculator') {
         aiResponse = `The result is 42. <br><br>_(This is a placeholder, real calculator logic coming soon!)_`;
     } else if (currentMode === 'todo') {
         aiResponse = "Okay, I've added 'finish chatbot' to your list. <br><br>_(This is a placeholder, real to-do logic coming soon!)_";
     }
     
-    // Remove the loading indicator and display the AI's response.
-    loadingIndicator.remove();
+    // Remove the loading indicator if it was created.
+    if (loadingIndicator) {
+        loadingIndicator.remove();
+    }
     addMessage('ai', aiResponse);
 
-    // Re-enable the form for the next message.
-    chatInput.disabled = false;
-    sendButton.disabled = false;
-    chatInput.focus();
+    // Re-enable the form for the next message, unless the guessing game is over.
+    if (currentMode === 'guessing' && !guessingGame.isActive) {
+        // The game has just ended. Display the difficulty options again.
+        addMessage('ai', `
+            <div class="menu-buttons">
+                <button class="menu-button difficulty-button" data-max-number="50" data-max-attempts="10">Easy (1-50, 10 Tries)</button>
+                <button class="menu-button difficulty-button" data-max-number="100" data-max-attempts="7">Medium (1-100, 7 Tries)</button>
+                <button class="menu-button difficulty-button" data-max-number="200" data-max-attempts="5">Hard (1-200, 5 Tries)</button>
+                <button class="menu-button difficulty-button" data-max-number="100" data-max-attempts="0">Practice (1-100, Unlimited)</button>
+            </div>
+        `);
+        chatInput.disabled = true;
+        sendButton.disabled = true;
+        chatInput.placeholder = "Game over! Select a new difficulty.";
+    } else {
+        chatInput.disabled = false;
+        sendButton.disabled = false;
+        chatInput.focus();
+    }
 });
 
 // Event listener for the menu button in the header.
@@ -219,9 +263,28 @@ menuButton.addEventListener('click', displayMenu);
 
 // Use event delegation on the chat messages container to handle menu button clicks.
 chatMessages.addEventListener('click', (e) => {
-    if (e.target.classList.contains('menu-button')) {
-        const selectedMode = e.target.dataset.mode;
-        handleModeSelection(selectedMode);
+    const target = e.target;
+    if (target.classList.contains('menu-button')) {
+        const selectedMode = target.dataset.mode;
+        if (selectedMode) {
+            handleModeSelection(selectedMode);
+        }
+    }
+    
+    if (target.classList.contains('difficulty-button')) {
+        const maxNumber = parseInt(target.dataset.maxNumber, 10);
+        const maxAttempts = parseInt(target.dataset.maxAttempts, 10);
+        
+        chatMessages.innerHTML = ''; // Clear options
+        addMessage('ai', `Great! I'm thinking of a number between 1 and ${maxNumber}. Let the game begin!`);
+        
+        startNewGuessingGame(maxNumber, maxAttempts);
+
+        // Enable input form for guessing
+        chatInput.disabled = false;
+        sendButton.disabled = false;
+        chatInput.placeholder = 'Type your guess...';
+        chatInput.focus();
     }
 });
 
