@@ -226,7 +226,8 @@ chatForm.addEventListener('submit', async (e) => {
         // Call the dedicated function from guessingGame.js
         aiResponse = handleGuess(messageText);
     } else if (currentMode === 'calculator') {
-        aiResponse = `The result is 42. <br><br>_(This is a placeholder, real calculator logic coming soon!)_`;
+        // Call the dedicated function from calculator.js
+        aiResponse = evaluateExpression(messageText);
     } else if (currentMode === 'todo') {
         aiResponse = "Okay, I've added 'finish chatbot' to your list. <br><br>_(This is a placeholder, real to-do logic coming soon!)_";
     }
